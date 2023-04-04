@@ -9,7 +9,9 @@ function QBCore.Player.Login(source, citizenid, newData)
     if source and source ~= '' then
         if citizenid then
             local license = QBCore.Functions.GetIdentifier(source, 'license')
+            local isOnline = QBCore.Functions.GetPlayerByCitizenId(citizenid)
             local PlayerData = MySQL.prepare.await('SELECT * FROM players where citizenid = ?', { citizenid })
+            if isOnline then exports['qb-core']:ExploitBan(source, 'You Have Been Banned For Exploitation') return end
             if PlayerData and license == PlayerData.license then
                 PlayerData.money = json.decode(PlayerData.money)
                 PlayerData.job = json.decode(PlayerData.job)
@@ -97,6 +99,8 @@ function QBCore.Player.CheckPlayerData(source, PlayerData)
     PlayerData.metadata['tracker'] = PlayerData.metadata['tracker'] or false
     PlayerData.metadata['injail'] = PlayerData.metadata['injail'] or 0
     PlayerData.metadata['jailitems'] = PlayerData.metadata['jailitems'] or {}
+    PlayerData.metadata['gameitems'] = PlayerData.metadata['gameitems'] or {}
+    PlayerData.metadata['deaditems'] = PlayerData.metadata['deaditems'] or {}
     PlayerData.metadata['status'] = PlayerData.metadata['status'] or {}
     PlayerData.metadata['phone'] = PlayerData.metadata['phone'] or {}
     PlayerData.metadata['fitbit'] = PlayerData.metadata['fitbit'] or {}
@@ -119,7 +123,7 @@ function QBCore.Player.CheckPlayerData(source, PlayerData)
         ['date'] = nil
     }
     PlayerData.metadata['licences'] = PlayerData.metadata['licences'] or {
-        ['driver'] = true,
+        ['driver'] = false,
         ['business'] = false,
         ['weapon'] = false
     }
@@ -328,7 +332,7 @@ function QBCore.Player.CreatePlayer(PlayerData, Offline)
             end
             TriggerClientEvent('hud:client:OnMoneyChange', self.PlayerData.source, moneytype, amount, true)
             if moneytype == 'bank' then
-                TriggerClientEvent('qb-phone:client:RemoveBankMoney', self.PlayerData.source, amount)
+                TriggerClientEvent('qs-smartphone:client:RemoveBankMoney', self.PlayerData.source, amount)
             end
             TriggerClientEvent('QBCore:Client:OnMoneyChange', self.PlayerData.source, moneytype, amount, "remove", reason)
             TriggerEvent('QBCore:Server:OnMoneyChange', self.PlayerData.source, moneytype, amount, "remove", reason)
